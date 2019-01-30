@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Ticket;
+use Auth;
 use Illuminate\Http\Request;
 
 class TicketController extends Controller
@@ -20,13 +21,20 @@ class TicketController extends Controller
      */
     public function index()
     {
-        $tickets = Ticket::where(['user_id' => Auth::user()->id])->get();
+        $tickets = Ticket::with('user')->with('status')->get();
 
         return response()->json([
-
-           'tickets'    => $tickets,
-
+           'tickets' => $tickets,
         ], 200);
+    }
+
+    public function getUserTickets()
+    {
+      $userTickets = Ticket::where(['user_id' => Auth::user()->id])->with('user')->with('status')->get();
+
+      return response()->json([
+         'user_tickets'    => $userTickets,
+      ], 200);
     }
 
     /**
@@ -36,7 +44,7 @@ class TicketController extends Controller
      */
     public function create()
     {
-        //
+
     }
 
     /**
@@ -92,19 +100,22 @@ class TicketController extends Controller
      * @param  \App\Ticket  $ticket
      * @return \Illuminate\Http\Response
      */
+
     public function update(Request $request, Ticket $ticket)
     {
+
+      if(Auth::user()->id == $ticket->user_id){
+
         $this->validate($request, [
-               'description' => 'required',
-           ]);
+          'description' => 'required',
+        ]);
+        $ticket->description = request('description');
+        $ticket->save();
 
-           $ticket->description = request('description');
-
-           $ticket->save();
-
-           return response()->json([
-               'message' => 'Ticket updated successfully!'
-           ], 200);
+        return response()->json([
+          'message' => 'Ticket updated successfully!',
+        ], 200);
+      }
     }
 
     /**
@@ -117,8 +128,8 @@ class TicketController extends Controller
     {
         $ticket->delete();
 
-         return response()->json([
-             'message' => 'Ticket deleted successfully!'
-         ], 200);
+        return response()->json([
+          'message' => 'Ticket deleted successfully!',
+        ], 200);
     }
 }

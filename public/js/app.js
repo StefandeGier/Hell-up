@@ -1885,19 +1885,69 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       ticket: {
         description: ''
       },
+      user_ticket: {
+        description: ''
+      },
       errors: [],
+      user_tickets: [],
       tickets: [],
-      update_ticket: {}
+      update_ticket: {},
+      update_user_ticket: {}
     };
   },
   mounted: function mounted() {
     this.readTickets();
+    this.userTickets();
   },
   methods: {
     deleteTicket: function deleteTicket(index) {
@@ -1906,31 +1956,36 @@ __webpack_require__.r(__webpack_exports__);
       var conf = confirm("Do you ready want to delete this ticket?");
 
       if (conf === true) {
-        axios.delete('/ticket/' + this.tickets[index].id).then(function (response) {
+        axios.delete('http://hell-up.test/public/ticket/' + this.tickets[index].id).then(function (response) {
+          //remove from view
           _this.tickets.splice(index, 1);
+
+          _this.user_tickets.splice(index, 1);
         }).catch(function (error) {});
       }
     },
     initAddTicket: function initAddTicket() {
       $("#add_ticket_model").modal("show");
     },
+    initUserTickets: function initUserTickets() {
+      $("#user_ticket_model").modal("show");
+    },
     createTicket: function createTicket() {
       var _this2 = this;
 
-      axios.post('/ticket', {
+      axios.post('http://hell-up.test/public/ticket', {
         description: this.ticket.description
       }).then(function (response) {
         _this2.reset();
 
-        _this2.tickets.push(response.data.ticket);
+        _this2.userTickets();
+
+        _this2.readTickets(); //this.tickets.push(response.data.ticket);
+
 
         $("#add_ticket_model").modal("hide");
       }).catch(function (error) {
         _this2.errors = [];
-
-        if (error.response.data.errors && error.response.data.errors.name) {
-          _this2.errors.push(error.response.data.errors.name[0]);
-        }
 
         if (error.response.data.errors && error.response.data.errors.description) {
           _this2.errors.push(error.response.data.errors.description[0]);
@@ -1944,28 +1999,43 @@ __webpack_require__.r(__webpack_exports__);
       var _this3 = this;
 
       console.log('readTickets');
-      axios.get('http://127.0.0.1:8000/ticket').then(function (response) {
-        console.log('Dit is gelukt');
+      axios.get('http://hell-up.test/public/ticket').then(function (response) {
         _this3.tickets = response.data.tickets;
+        console.log(_this3.tickets);
+      });
+    },
+    userTickets: function userTickets() {
+      var _this4 = this;
+
+      console.log('userTickets');
+      axios.get('http://hell-up.test/public/getusertickets/').then(function (response) {
+        _this4.user_tickets = response.data.user_tickets;
+        console.log(_this4.user_tickets.description);
+        console.log(_this4.user_tickets);
       });
     },
     initUpdate: function initUpdate(index) {
       this.errors = [];
       $("#update_ticket_model").modal("show");
-      this.update_ticket = this.tickets[index];
+      this.update_user_ticket = this.user_tickets[index];
     },
     updateTicket: function updateTicket() {
-      var _this4 = this;
+      var _this5 = this;
 
-      axios.patch('/ticket/' + this.update_ticket.id, {
-        description: this.update_ticket.description
+      console.log('Update');
+      axios.patch('http://hell-up.test/public/ticket/' + this.update_user_ticket.id, {
+        description: this.update_user_ticket.description
       }).then(function (response) {
+        _this5.readTickets(); //this.userTickets();
+
+
+        console.log('hide');
         $("#update_ticket_model").modal("hide");
       }).catch(function (error) {
-        _this4.errors = [];
+        _this5.errors = [];
 
         if (error.response.data.errors.description) {
-          _this4.errors.push(error.response.data.errors.description[0]);
+          _this5.errors.push(error.response.data.errors.description[0]);
         }
       });
     }
@@ -36897,11 +36967,21 @@ var render = function() {
                   }
                 }
               },
-              [
-                _vm._v(
-                  "\n                    Add a new ticket\n                  "
-                )
-              ]
+              [_vm._v("\n                    New\n                  ")]
+            ),
+            _vm._v(" "),
+            _c(
+              "button",
+              {
+                staticClass: "btn btn-success ",
+                staticStyle: { padding: "5px" },
+                on: {
+                  click: function($event) {
+                    _vm.initUserTickets()
+                  }
+                }
+              },
+              [_vm._v("\n                    My Tickets\n                  ")]
             )
           ]),
           _vm._v(" "),
@@ -36910,8 +36990,7 @@ var render = function() {
               ? _c(
                   "table",
                   {
-                    staticClass:
-                      "table table-bordered table-striped table-responsive"
+                    staticClass: "table-responsive table-bordered table-striped"
                   },
                   [
                     _c(
@@ -36923,45 +37002,19 @@ var render = function() {
                           return _c("tr", [
                             _c("td", [_vm._v(_vm._s(index + 1))]),
                             _vm._v(" "),
-                            _c("td", [_vm._v(_vm._s(ticket.description))]),
+                            _c("td", [_vm._v(_vm._s(ticket.created_at))]),
                             _vm._v(" "),
                             _c("td", [
-                              _c(
-                                "button",
-                                {
-                                  staticClass: "btn btn-success btn-xs",
-                                  staticStyle: { padding: "8px" },
-                                  on: {
-                                    click: function($event) {
-                                      _vm.initUpdate(index)
-                                    }
-                                  }
-                                },
-                                [
-                                  _c("span", {
-                                    staticClass: "glyphicon glyphicon-edit"
-                                  })
-                                ]
-                              ),
-                              _vm._v(" "),
-                              _c(
-                                "button",
-                                {
-                                  staticClass: "btn btn-danger btn-xs",
-                                  staticStyle: { padding: "8px" },
-                                  on: {
-                                    click: function($event) {
-                                      _vm.deleteTicket(index)
-                                    }
-                                  }
-                                },
-                                [
-                                  _c("span", {
-                                    staticClass: "glyphicon glyphicon-trash"
-                                  })
-                                ]
+                              _vm._v(
+                                _vm._s(ticket.user.firstname) +
+                                  " " +
+                                  _vm._s(ticket.user.lastname)
                               )
-                            ])
+                            ]),
+                            _vm._v(" "),
+                            _c("td", [_vm._v(_vm._s(ticket.description))]),
+                            _vm._v(" "),
+                            _c("td", [_vm._v(_vm._s(ticket.status.name))])
                           ])
                         })
                       ],
@@ -37054,12 +37107,114 @@ var render = function() {
                     attrs: { type: "button" },
                     on: { click: _vm.createTicket }
                   },
-                  [_vm._v("Submit")]
+                  [_vm._v("Confirm")]
                 )
               ])
             ])
           ]
         )
+      ]
+    ),
+    _vm._v(" "),
+    _c(
+      "div",
+      {
+        staticClass: "modal fade bd-example-modal-lg",
+        attrs: {
+          tabindex: "-1",
+          role: "dialog",
+          id: "user_ticket_model",
+          "aria-hidden": "true"
+        }
+      },
+      [
+        _c("div", { staticClass: "modal-dialog modal-lg" }, [
+          _c("div", { staticClass: "modal-content" }, [
+            _vm._m(3),
+            _vm._v(" "),
+            _c("div", { staticClass: "panel-body" }, [
+              _vm.user_tickets.length > 0
+                ? _c(
+                    "table",
+                    {
+                      staticClass:
+                        "table-responsive table-bordered table-striped"
+                    },
+                    [
+                      _c(
+                        "tbody",
+                        [
+                          _vm._m(4),
+                          _vm._v(" "),
+                          _vm._l(_vm.user_tickets, function(
+                            user_ticket,
+                            index
+                          ) {
+                            return _c("tr", [
+                              _c("td", [_vm._v(_vm._s(index + 1))]),
+                              _vm._v(" "),
+                              _c("td", [
+                                _vm._v(_vm._s(user_ticket.created_at))
+                              ]),
+                              _vm._v(" "),
+                              _c("td", [
+                                _vm._v(
+                                  _vm._s(user_ticket.user.firstname) +
+                                    " " +
+                                    _vm._s(user_ticket.user.lastname)
+                                )
+                              ]),
+                              _vm._v(" "),
+                              _c("td", [
+                                _vm._v(_vm._s(user_ticket.description))
+                              ]),
+                              _vm._v(" "),
+                              _c("td", [
+                                _vm._v(_vm._s(user_ticket.status.name))
+                              ]),
+                              _vm._v(" "),
+                              _c("td", [
+                                _c(
+                                  "button",
+                                  {
+                                    staticClass: "btn btn-success btn-xs",
+                                    staticStyle: { padding: "8px" },
+                                    on: {
+                                      click: function($event) {
+                                        _vm.initUpdate(index)
+                                      }
+                                    }
+                                  },
+                                  [_vm._v("Edit")]
+                                ),
+                                _vm._v(" "),
+                                _c(
+                                  "button",
+                                  {
+                                    staticClass: "btn btn-danger btn-xs",
+                                    staticStyle: { padding: "8px" },
+                                    on: {
+                                      click: function($event) {
+                                        _vm.deleteTicket(index)
+                                      }
+                                    }
+                                  },
+                                  [_vm._v("Remove")]
+                                )
+                              ])
+                            ])
+                          })
+                        ],
+                        2
+                      )
+                    ]
+                  )
+                : _vm._e()
+            ]),
+            _vm._v(" "),
+            _vm._m(5)
+          ])
+        ])
       ]
     ),
     _vm._v(" "),
@@ -37075,7 +37230,7 @@ var render = function() {
           { staticClass: "modal-dialog", attrs: { role: "document" } },
           [
             _c("div", { staticClass: "modal-content" }, [
-              _vm._m(3),
+              _vm._m(6),
               _vm._v(" "),
               _c("div", { staticClass: "modal-body" }, [
                 _vm.errors.length > 0
@@ -37100,8 +37255,8 @@ var render = function() {
                       {
                         name: "model",
                         rawName: "v-model",
-                        value: _vm.update_ticket.description,
-                        expression: "update_ticket.description"
+                        value: _vm.update_user_ticket.description,
+                        expression: "update_user_ticket.description"
                       }
                     ],
                     staticClass: "form-control",
@@ -37110,14 +37265,14 @@ var render = function() {
                       rows: "5",
                       placeholder: "Ticket Description"
                     },
-                    domProps: { value: _vm.update_ticket.description },
+                    domProps: { value: _vm.update_user_ticket.description },
                     on: {
                       input: function($event) {
                         if ($event.target.composing) {
                           return
                         }
                         _vm.$set(
-                          _vm.update_ticket,
+                          _vm.update_user_ticket,
                           "description",
                           $event.target.value
                         )
@@ -37144,7 +37299,7 @@ var render = function() {
                     attrs: { type: "button" },
                     on: { click: _vm.updateTicket }
                   },
-                  [_vm._v("Submit")]
+                  [_vm._v("Confirm")]
                 )
               ])
             ])
@@ -37161,7 +37316,7 @@ var staticRenderFns = [
     var _c = _vm._self._c || _h
     return _c("h3", [
       _c("span", { staticClass: "glyphicon glyphicon-dashboard" }),
-      _vm._v(" Assignment Dashboard ")
+      _vm._v(" Ticket Dashboard ")
     ])
   },
   function() {
@@ -37171,7 +37326,71 @@ var staticRenderFns = [
     return _c("tr", [
       _c("th", [_vm._v("No.")]),
       _vm._v(" "),
+      _c("th", [_vm._v("Date")]),
+      _vm._v(" "),
+      _c("th", [_vm._v("Student")]),
+      _vm._v(" "),
       _c("th", [_vm._v("Description")]),
+      _vm._v(" "),
+      _c("th", [_vm._v("Status")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "modal-header" }, [
+      _c("h4", { staticClass: "modal-title" }, [_vm._v("Add New Ticket")]),
+      _vm._v(" "),
+      _c(
+        "button",
+        {
+          staticClass: "close",
+          attrs: {
+            type: "button",
+            "data-dismiss": "modal",
+            "aria-label": "Close"
+          }
+        },
+        [_c("span", { attrs: { "aria-hidden": "true" } }, [_vm._v("×")])]
+      )
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "modal-header" }, [
+      _c("h4", { staticClass: "modal-title" }, [_vm._v("My tickets")]),
+      _vm._v(" "),
+      _c(
+        "button",
+        {
+          staticClass: "close",
+          attrs: {
+            type: "button",
+            "data-dismiss": "modal",
+            "aria-label": "Close"
+          }
+        },
+        [_c("span", { attrs: { "aria-hidden": "true" } }, [_vm._v("×")])]
+      )
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("tr", [
+      _c("th", [_vm._v("No.")]),
+      _vm._v(" "),
+      _c("th", [_vm._v("Date")]),
+      _vm._v(" "),
+      _c("th", [_vm._v("Student")]),
+      _vm._v(" "),
+      _c("th", [_vm._v("Description")]),
+      _vm._v(" "),
+      _c("th", [_vm._v("Status")]),
       _vm._v(" "),
       _c("th", [_vm._v("Action")])
     ])
@@ -37180,21 +37399,15 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "modal-header" }, [
+    return _c("div", { staticClass: "modal-footer" }, [
       _c(
         "button",
         {
-          staticClass: "close",
-          attrs: {
-            type: "button",
-            "data-dismiss": "modal",
-            "aria-label": "Close"
-          }
+          staticClass: "btn btn-default",
+          attrs: { type: "button", "data-dismiss": "modal" }
         },
-        [_c("span", { attrs: { "aria-hidden": "true" } }, [_vm._v("×")])]
-      ),
-      _vm._v(" "),
-      _c("h4", { staticClass: "modal-title" }, [_vm._v("Add New Ticket")])
+        [_vm._v("Close")]
+      )
     ])
   },
   function() {
@@ -37202,6 +37415,8 @@ var staticRenderFns = [
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
     return _c("div", { staticClass: "modal-header" }, [
+      _c("h4", { staticClass: "modal-title" }, [_vm._v("Update Ticket")]),
+      _vm._v(" "),
       _c(
         "button",
         {
@@ -37213,9 +37428,7 @@ var staticRenderFns = [
           }
         },
         [_c("span", { attrs: { "aria-hidden": "true" } }, [_vm._v("×")])]
-      ),
-      _vm._v(" "),
-      _c("h4", { staticClass: "modal-title" }, [_vm._v("Update Ticket")])
+      )
     ])
   }
 ]
