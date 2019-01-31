@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Ticket;
+use App\Tag;
 use Auth;
 use Illuminate\Http\Request;
 
@@ -21,7 +22,8 @@ class TicketController extends Controller
      */
     public function index()
     {
-        $tickets = Ticket::with('user')->with('status')->get();
+        //get all Ticket and from other tables status, tag, and user
+        $tickets = Ticket::with('user')->with('status')->with('tag')->get();
 
         return response()->json([
            'tickets' => $tickets,
@@ -30,22 +32,15 @@ class TicketController extends Controller
 
     public function getUserTickets()
     {
-      $userTickets = Ticket::where(['user_id' => Auth::user()->id])->with('user')->with('status')->get();
+      //get only the logged in user tickets
+      $userTickets = Ticket::where(['user_id' => Auth::user()->id])->with('user')->with('status')->with('tag')->get();
 
       return response()->json([
          'user_tickets'    => $userTickets,
       ], 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
 
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -64,33 +59,27 @@ class TicketController extends Controller
            'user_id'     => Auth::user()->id
        ]);
 
+       $tags = array();
+
+      $tagsArr = $request['tags'];
+
+      
+       if($tagsArr[0] != $tagsArr[1] && empty(!$tagsArr)){
+         foreach ($tagsArr as $tag) {
+           if($tag != null){
+             $tags[] = Tag::create([
+                  'ticket_id' => $ticket->id,
+                  'tag_id' => $tag,
+             ]);
+           }
+         }
+       }
        return response()->json([
            'ticket'    => $ticket,
+           'tags'    => $tags,
            'message' => 'Success'
        ], 200);
 
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Ticket  $ticket
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Ticket $ticket)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Ticket  $ticket
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Ticket $ticket)
-    {
-        //
     }
 
     /**

@@ -11,7 +11,7 @@
                        New
                      </button>
                      <button @click="initUserTickets()" class="btn btn-success " style="padding:5px">
-                       My Tickets
+                        Tickets
                      </button>
                    </div>
                    <div class="panel-body">
@@ -21,6 +21,7 @@
                                  <th>No.</th>
                                  <th>Date</th>
                                  <th>Student</th>
+                                 <th>Tags</th>
                                  <th>Description</th>
                                  <th>Status</th>
                              </tr>
@@ -28,6 +29,10 @@
                                <td>{{ index + 1 }}</td>
                                <td>{{ ticket.created_at }}</td>
                                <td>{{ ticket.user.firstname}} {{ ticket.user.lastname}}</td>
+                               <td>
+                               <span v-if="ticket.tag[0]" class="badge" v-bind:style="{ background: tags[0][ticket.tag[0].tag_id][0].color}">{{tags[0][ticket.tag[0].tag_id][0].name}}</span>
+                               <span v-if="ticket.tag[1]" class="badge" v-bind:style="{ background: tags[0][ticket.tag[1].tag_id][0].color}">{{tags[0][ticket.tag[1].tag_id][0].name}}</span>
+                               </td>
                                <td>{{ ticket.description}}</td>
                                <td>{{ ticket.status.name}}</td>
                              </tr>
@@ -55,6 +60,17 @@
                  <label for="description">Description:</label>
                  <textarea name="description" id="description" cols="30" rows="5" class="form-control" placeholder="Ticket Description" v-model="ticket.description"></textarea>
                </div>
+               <div class="form-group">
+                <label>Tags:</label>
+                 <select v-model="selected1" v-on:change="initTag">
+                    <option v-for="tag in tags[0]" :value="tag[0].id">{{tag[0].name}}</option>
+                </select>
+
+                <select v-model="selected2" v-on:change="initTag">
+                    <option v-for="tag in tags[0]" :value="tag[0].id">{{tag[0].name}}</option>
+               </select>
+
+              </div>
              </div>
              <div class="modal-footer">
                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -78,6 +94,7 @@
                           <th>No.</th>
                           <th>Date</th>
                           <th>Student</th>
+                          <th>Tags</th>
                           <th>Description</th>
                           <th>Status</th>
                           <th>Action</th>
@@ -86,6 +103,10 @@
                         <td>{{ index + 1 }}</td>
                         <td>{{ user_ticket.created_at }}</td>
                         <td>{{ user_ticket.user.firstname}} {{ user_ticket.user.lastname}}</td>
+                        <td>
+                          <span v-if="user_ticket.tag[0]" class="badge" v-bind:style="{ background: tags[0][user_ticket.tag[0].tag_id][0].color}">{{tags[0][user_ticket.tag[0].tag_id][0].name}}</span>
+                          <span v-if="user_ticket.tag[1]" class="badge" v-bind:style="{ background: tags[0][user_ticket.tag[1].tag_id][0].color}">{{tags[0][user_ticket.tag[1].tag_id][0].name}}</span>
+                        </td>
                         <td>{{ user_ticket.description}}</td>
                         <td>{{ user_ticket.status.name}}</td>
                         <td>
@@ -125,22 +146,36 @@
                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                <button type="button" @click="updateTicket" class="btn btn-primary">Confirm</button>
              </div>
-           </div><!-- /.modal-content -->
-         </div><!-- /.modal-dialog -->
-       </div><!-- /.modal -->
+           </div>
+         </div>
+       </div>
    </div>
 </template>
 
 <script>
    export default {
+
        data(){
          return {
+           selected1: {},
+           selected2: {},
            ticket: {
                description: ''
            },
            user_ticket: {
               description: ''
            },
+           tags: [{
+             0 :[{}],
+             1 :[{ id: '1',  name: 'PHP', color: 'red'}],
+             2 :[{ id: '2',  name: 'JS', color: 'blue'}],
+             3 :[{ id: '3',  name: 'LARAVEL', color: 'yellow'}],
+             4 :[{ id: '4',  name: 'HTML', color: 'green'}],
+             5 :[{ id: '5',  name: 'CSS', color: 'purple'}],
+             6 :[{ id: '6',  name: 'APPACHE', color: 'red'}],
+           }],
+
+
            errors: [],
            user_tickets: [],
            tickets: [],
@@ -152,7 +187,6 @@
        {
          this.readTickets();
          this.userTickets();
-
        },
        methods: {
 
@@ -170,6 +204,13 @@
                });
              }
            },
+           initTag()
+           {
+             if(this.selected1 == this.selected2){
+               confirm("Same tags are not allowed");
+             }
+
+           },
            initAddTicket()
            {
              $("#add_ticket_model").modal("show");
@@ -182,28 +223,38 @@
 
            createTicket()
            {
-             axios.post('http://hell-up.test/public/ticket', {
-               description: this.ticket.description,
-             })
-             .then(response => {
-               this.reset();
+             var selected = [this.selected1, this.selected2];
 
-               this.userTickets();
-               this.readTickets();
+             if(selected.length < 0 || this.selected1 != this.selected2){
+               console.log(this.selected1)
+               console.log(this.selected2)
+               axios.post('http://hell-up.test/public/ticket', {
+                 description: this.ticket.description,
+                 tags: selected,
+               })
+               .then(response => {
+                 this.reset();
 
-               //this.tickets.push(response.data.ticket);
-               $("#add_ticket_model").modal("hide");
-             })
-             .catch(error => {
-               this.errors = [];
-              if (error.response.data.errors && error.response.data.errors.description){
-                this.errors.push(error.response.data.errors.description[0]);
-              }
-             });
+                 this.userTickets();
+                 this.readTickets();
+
+                 $("#add_ticket_model").modal("hide");
+               })
+               .catch(error => {
+                 this.errors = [];
+                if (error.response.data.errors && error.response.data.errors.description){
+                  this.errors.push(error.response.data.errors.description[0]);
+                }
+               });
+             }else{
+               confirm("Same tags are not allowed");
+             }
            },
            reset()
            {
              this.ticket.description = '';
+             this.selected1 = '';
+             this.selected2 = '';
            },
 
            readTickets()
@@ -214,6 +265,8 @@
                  this.tickets = response.data.tickets;
                   console.log(this.tickets);
                });
+
+
            },
 
            userTickets()
@@ -222,8 +275,6 @@
              axios.get('http://hell-up.test/public/getusertickets/')
                .then(response => {
                  this.user_tickets = response.data.user_tickets;
-                 console.log(this.user_tickets.description);
-                 console.log(this.user_tickets);
                });
            },
 
@@ -236,14 +287,11 @@
 
            updateTicket()
            {
-             console.log('Update')
              axios.patch('http://hell-up.test/public/ticket/' + this.update_user_ticket.id, {
                description: this.update_user_ticket.description,
              })
              .then(response => {
                this.readTickets();
-               //this.userTickets();
-               console.log('hide');
                $("#update_ticket_model").modal("hide");
              })
              .catch(error => {

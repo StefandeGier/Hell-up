@@ -1929,15 +1929,71 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
+      selected1: {},
+      selected2: {},
       ticket: {
         description: ''
       },
       user_ticket: {
         description: ''
       },
+      tags: [{
+        0: [{}],
+        1: [{
+          id: '1',
+          name: 'PHP',
+          color: 'red'
+        }],
+        2: [{
+          id: '2',
+          name: 'JS',
+          color: 'blue'
+        }],
+        3: [{
+          id: '3',
+          name: 'LARAVEL',
+          color: 'yellow'
+        }],
+        4: [{
+          id: '4',
+          name: 'HTML',
+          color: 'green'
+        }],
+        5: [{
+          id: '5',
+          name: 'CSS',
+          color: 'purple'
+        }],
+        6: [{
+          id: '6',
+          name: 'APPACHE',
+          color: 'red'
+        }]
+      }],
       errors: [],
       user_tickets: [],
       tickets: [],
@@ -1964,6 +2020,11 @@ __webpack_require__.r(__webpack_exports__);
         }).catch(function (error) {});
       }
     },
+    initTag: function initTag() {
+      if (this.selected1 == this.selected2) {
+        confirm("Same tags are not allowed");
+      }
+    },
     initAddTicket: function initAddTicket() {
       $("#add_ticket_model").modal("show");
     },
@@ -1973,27 +2034,37 @@ __webpack_require__.r(__webpack_exports__);
     createTicket: function createTicket() {
       var _this2 = this;
 
-      axios.post('http://hell-up.test/public/ticket', {
-        description: this.ticket.description
-      }).then(function (response) {
-        _this2.reset();
+      var selected = [this.selected1, this.selected2];
 
-        _this2.userTickets();
+      if (selected.length < 0 || this.selected1 != this.selected2) {
+        console.log(this.selected1);
+        console.log(this.selected2);
+        axios.post('http://hell-up.test/public/ticket', {
+          description: this.ticket.description,
+          tags: selected
+        }).then(function (response) {
+          _this2.reset();
 
-        _this2.readTickets(); //this.tickets.push(response.data.ticket);
+          _this2.userTickets();
 
+          _this2.readTickets();
 
-        $("#add_ticket_model").modal("hide");
-      }).catch(function (error) {
-        _this2.errors = [];
+          $("#add_ticket_model").modal("hide");
+        }).catch(function (error) {
+          _this2.errors = [];
 
-        if (error.response.data.errors && error.response.data.errors.description) {
-          _this2.errors.push(error.response.data.errors.description[0]);
-        }
-      });
+          if (error.response.data.errors && error.response.data.errors.description) {
+            _this2.errors.push(error.response.data.errors.description[0]);
+          }
+        });
+      } else {
+        confirm("Same tags are not allowed");
+      }
     },
     reset: function reset() {
       this.ticket.description = '';
+      this.selected1 = '';
+      this.selected2 = '';
     },
     readTickets: function readTickets() {
       var _this3 = this;
@@ -2010,8 +2081,6 @@ __webpack_require__.r(__webpack_exports__);
       console.log('userTickets');
       axios.get('http://hell-up.test/public/getusertickets/').then(function (response) {
         _this4.user_tickets = response.data.user_tickets;
-        console.log(_this4.user_tickets.description);
-        console.log(_this4.user_tickets);
       });
     },
     initUpdate: function initUpdate(index) {
@@ -2022,14 +2091,11 @@ __webpack_require__.r(__webpack_exports__);
     updateTicket: function updateTicket() {
       var _this5 = this;
 
-      console.log('Update');
       axios.patch('http://hell-up.test/public/ticket/' + this.update_user_ticket.id, {
         description: this.update_user_ticket.description
       }).then(function (response) {
-        _this5.readTickets(); //this.userTickets();
+        _this5.readTickets();
 
-
-        console.log('hide');
         $("#update_ticket_model").modal("hide");
       }).catch(function (error) {
         _this5.errors = [];
@@ -36981,7 +37047,7 @@ var render = function() {
                   }
                 }
               },
-              [_vm._v("\n                    My Tickets\n                  ")]
+              [_vm._v("\n                     Tickets\n                  ")]
             )
           ]),
           _vm._v(" "),
@@ -37010,6 +37076,52 @@ var render = function() {
                                   " " +
                                   _vm._s(ticket.user.lastname)
                               )
+                            ]),
+                            _vm._v(" "),
+                            _c("td", [
+                              ticket.tag[0]
+                                ? _c(
+                                    "span",
+                                    {
+                                      staticClass: "badge",
+                                      style: {
+                                        background:
+                                          _vm.tags[0][ticket.tag[0].tag_id][0]
+                                            .color
+                                      }
+                                    },
+                                    [
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.tags[0][ticket.tag[0].tag_id][0]
+                                            .name
+                                        )
+                                      )
+                                    ]
+                                  )
+                                : _vm._e(),
+                              _vm._v(" "),
+                              ticket.tag[1]
+                                ? _c(
+                                    "span",
+                                    {
+                                      staticClass: "badge",
+                                      style: {
+                                        background:
+                                          _vm.tags[0][ticket.tag[1].tag_id][0]
+                                            .color
+                                      }
+                                    },
+                                    [
+                                      _vm._v(
+                                        _vm._s(
+                                          _vm.tags[0][ticket.tag[1].tag_id][0]
+                                            .name
+                                        )
+                                      )
+                                    ]
+                                  )
+                                : _vm._e()
                             ]),
                             _vm._v(" "),
                             _c("td", [_vm._v(_vm._s(ticket.description))]),
@@ -37087,6 +37199,86 @@ var render = function() {
                       }
                     }
                   })
+                ]),
+                _vm._v(" "),
+                _c("div", { staticClass: "form-group" }, [
+                  _c("label", [_vm._v("Tags:")]),
+                  _vm._v(" "),
+                  _c(
+                    "select",
+                    {
+                      directives: [
+                        {
+                          name: "model",
+                          rawName: "v-model",
+                          value: _vm.selected1,
+                          expression: "selected1"
+                        }
+                      ],
+                      on: {
+                        change: [
+                          function($event) {
+                            var $$selectedVal = Array.prototype.filter
+                              .call($event.target.options, function(o) {
+                                return o.selected
+                              })
+                              .map(function(o) {
+                                var val = "_value" in o ? o._value : o.value
+                                return val
+                              })
+                            _vm.selected1 = $event.target.multiple
+                              ? $$selectedVal
+                              : $$selectedVal[0]
+                          },
+                          _vm.initTag
+                        ]
+                      }
+                    },
+                    _vm._l(_vm.tags[0], function(tag) {
+                      return _c("option", { domProps: { value: tag[0].id } }, [
+                        _vm._v(_vm._s(tag[0].name))
+                      ])
+                    }),
+                    0
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "select",
+                    {
+                      directives: [
+                        {
+                          name: "model",
+                          rawName: "v-model",
+                          value: _vm.selected2,
+                          expression: "selected2"
+                        }
+                      ],
+                      on: {
+                        change: [
+                          function($event) {
+                            var $$selectedVal = Array.prototype.filter
+                              .call($event.target.options, function(o) {
+                                return o.selected
+                              })
+                              .map(function(o) {
+                                var val = "_value" in o ? o._value : o.value
+                                return val
+                              })
+                            _vm.selected2 = $event.target.multiple
+                              ? $$selectedVal
+                              : $$selectedVal[0]
+                          },
+                          _vm.initTag
+                        ]
+                      }
+                    },
+                    _vm._l(_vm.tags[0], function(tag) {
+                      return _c("option", { domProps: { value: tag[0].id } }, [
+                        _vm._v(_vm._s(tag[0].name))
+                      ])
+                    }),
+                    0
+                  )
                 ])
               ]),
               _vm._v(" "),
@@ -37163,6 +37355,56 @@ var render = function() {
                                     " " +
                                     _vm._s(user_ticket.user.lastname)
                                 )
+                              ]),
+                              _vm._v(" "),
+                              _c("td", [
+                                user_ticket.tag[0]
+                                  ? _c(
+                                      "span",
+                                      {
+                                        staticClass: "badge",
+                                        style: {
+                                          background:
+                                            _vm.tags[0][
+                                              user_ticket.tag[0].tag_id
+                                            ][0].color
+                                        }
+                                      },
+                                      [
+                                        _vm._v(
+                                          _vm._s(
+                                            _vm.tags[0][
+                                              user_ticket.tag[0].tag_id
+                                            ][0].name
+                                          )
+                                        )
+                                      ]
+                                    )
+                                  : _vm._e(),
+                                _vm._v(" "),
+                                user_ticket.tag[1]
+                                  ? _c(
+                                      "span",
+                                      {
+                                        staticClass: "badge",
+                                        style: {
+                                          background:
+                                            _vm.tags[0][
+                                              user_ticket.tag[1].tag_id
+                                            ][0].color
+                                        }
+                                      },
+                                      [
+                                        _vm._v(
+                                          _vm._s(
+                                            _vm.tags[0][
+                                              user_ticket.tag[1].tag_id
+                                            ][0].name
+                                          )
+                                        )
+                                      ]
+                                    )
+                                  : _vm._e()
                               ]),
                               _vm._v(" "),
                               _c("td", [
@@ -37330,6 +37572,8 @@ var staticRenderFns = [
       _vm._v(" "),
       _c("th", [_vm._v("Student")]),
       _vm._v(" "),
+      _c("th", [_vm._v("Tags")]),
+      _vm._v(" "),
       _c("th", [_vm._v("Description")]),
       _vm._v(" "),
       _c("th", [_vm._v("Status")])
@@ -37387,6 +37631,8 @@ var staticRenderFns = [
       _c("th", [_vm._v("Date")]),
       _vm._v(" "),
       _c("th", [_vm._v("Student")]),
+      _vm._v(" "),
+      _c("th", [_vm._v("Tags")]),
       _vm._v(" "),
       _c("th", [_vm._v("Description")]),
       _vm._v(" "),
