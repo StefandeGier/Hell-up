@@ -1962,7 +1962,6 @@ __webpack_require__.r(__webpack_exports__);
         description: ''
       },
       tags: [{
-        0: [{}],
         1: [{
           id: '1',
           name: 'PHP',
@@ -2006,20 +2005,26 @@ __webpack_require__.r(__webpack_exports__);
     this.userTickets();
   },
   methods: {
+    //delete the ticket
     deleteTicket: function deleteTicket(index) {
       var _this = this;
 
       var conf = confirm("Do you ready want to delete this ticket?");
 
       if (conf === true) {
-        axios.delete('http://hell-up.test/public/ticket/' + this.tickets[index].id).then(function (response) {
+        axios.delete('http://hell-up.test/public/ticket/' + this.user_tickets[index].id).then(function (response) {
           //remove from view
-          _this.tickets.splice(index, 1);
+          if (!response.data.status) {
+            confirm("Error in delete");
+          } else {
+            _this.readTickets();
 
-          _this.user_tickets.splice(index, 1);
+            _this.user_tickets.splice(index, 1);
+          }
         }).catch(function (error) {});
       }
     },
+    //give error if same
     initTag: function initTag() {
       if (this.selected1 == this.selected2) {
         confirm("Same tags are not allowed");
@@ -2031,23 +2036,26 @@ __webpack_require__.r(__webpack_exports__);
     initUserTickets: function initUserTickets() {
       $("#user_ticket_model").modal("show");
     },
+    //creates a ticket
     createTicket: function createTicket() {
       var _this2 = this;
 
       var selected = [this.selected1, this.selected2];
 
       if (selected.length < 0 || this.selected1 != this.selected2) {
-        console.log(this.selected1);
-        console.log(this.selected2);
         axios.post('http://hell-up.test/public/ticket', {
           description: this.ticket.description,
           tags: selected
         }).then(function (response) {
-          _this2.reset();
+          if (!response.data.status) {
+            confirm("Error in create");
+          } else {
+            _this2.reset();
 
-          _this2.userTickets();
+            _this2.userTickets();
 
-          _this2.readTickets();
+            _this2.readTickets();
+          }
 
           $("#add_ticket_model").modal("hide");
         }).catch(function (error) {
@@ -2069,18 +2077,23 @@ __webpack_require__.r(__webpack_exports__);
     readTickets: function readTickets() {
       var _this3 = this;
 
-      console.log('readTickets');
       axios.get('http://hell-up.test/public/ticket').then(function (response) {
-        _this3.tickets = response.data.tickets;
-        console.log(_this3.tickets);
+        if (!response.data.status) {
+          confirm("Cannot read tickets");
+        } else {
+          _this3.tickets = response.data.tickets;
+        }
       });
     },
     userTickets: function userTickets() {
       var _this4 = this;
 
-      console.log('userTickets');
       axios.get('http://hell-up.test/public/getusertickets/').then(function (response) {
-        _this4.user_tickets = response.data.user_tickets;
+        if (!response.data.status) {
+          confirm("Cannot read tickets");
+        } else {
+          _this4.user_tickets = response.data.user_tickets;
+        }
       });
     },
     initUpdate: function initUpdate(index) {
@@ -2094,7 +2107,11 @@ __webpack_require__.r(__webpack_exports__);
       axios.patch('http://hell-up.test/public/ticket/' + this.update_user_ticket.id, {
         description: this.update_user_ticket.description
       }).then(function (response) {
-        _this5.readTickets();
+        if (!response.data.status) {
+          confirm("Cannot read tickets");
+        } else {
+          _this5.readTickets();
+        }
 
         $("#update_ticket_model").modal("hide");
       }).catch(function (error) {

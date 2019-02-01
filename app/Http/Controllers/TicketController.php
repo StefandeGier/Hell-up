@@ -25,9 +25,13 @@ class TicketController extends Controller
         //get all Ticket and from other tables status, tag, and user
         $tickets = Ticket::with('user')->with('status')->with('tag')->get();
 
-        return response()->json([
-           'tickets' => $tickets,
-        ], 200);
+        if($tickets){
+          return response()->json([
+             'tickets' => $tickets,
+             'status' => 1
+          ]);
+        }
+
     }
 
     public function getUserTickets()
@@ -35,9 +39,12 @@ class TicketController extends Controller
       //get only the logged in user tickets
       $userTickets = Ticket::where(['user_id' => Auth::user()->id])->with('user')->with('status')->with('tag')->get();
 
-      return response()->json([
-         'user_tickets'    => $userTickets,
-      ], 200);
+      if($userTickets){
+        return response()->json([
+           'user_tickets' => $userTickets,
+           'status' => 1
+        ]);
+      }
     }
 
 
@@ -50,10 +57,11 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
+      //check valid
         $this->validate($request, [
            'description' => 'required',
        ]);
-
+       //insert the ticket
        $ticket = Ticket::create([
            'description' => request('description'),
            'user_id'     => Auth::user()->id
@@ -63,23 +71,25 @@ class TicketController extends Controller
 
       $tagsArr = $request['tags'];
 
-      
+      //insert tags if filled nad not the same
        if($tagsArr[0] != $tagsArr[1] && empty(!$tagsArr)){
          foreach ($tagsArr as $tag) {
            if($tag != null){
              $tags[] = Tag::create([
-                  'ticket_id' => $ticket->id,
-                  'tag_id' => $tag,
+              'ticket_id' => $ticket->id,
+              'tag_id' => $tag,
              ]);
            }
          }
        }
-       return response()->json([
-           'ticket'    => $ticket,
-           'tags'    => $tags,
-           'message' => 'Success'
-       ], 200);
 
+       if($ticket){
+         return response()->json([
+            'tickets' => $ticket,
+            'tags'    => $tags,
+            'status' => 1
+         ]);
+       }
     }
 
     /**
@@ -92,7 +102,7 @@ class TicketController extends Controller
 
     public function update(Request $request, Ticket $ticket)
     {
-
+      //if user is valid to delete
       if(Auth::user()->id == $ticket->user_id){
 
         $this->validate($request, [
@@ -101,9 +111,12 @@ class TicketController extends Controller
         $ticket->description = request('description');
         $ticket->save();
 
-        return response()->json([
-          'message' => 'Ticket updated successfully!',
-        ], 200);
+        if($ticket){
+          return response()->json([
+             'status' => 1
+          ]);
+        }
+
       }
     }
 
@@ -115,10 +128,18 @@ class TicketController extends Controller
      */
     public function destroy(Ticket $ticket)
     {
+      // if user 
+      if(Auth::user()->id == $ticket->user_id){
+        // delete ticket
         $ticket->delete();
 
-        return response()->json([
-          'message' => 'Ticket deleted successfully!',
-        ], 200);
+        if($ticket){
+          return response()->json([
+             'status' => 1
+          ]);
+      }
+    }
+
+
     }
 }

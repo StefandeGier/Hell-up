@@ -166,7 +166,6 @@
               description: ''
            },
            tags: [{
-             0 :[{}],
              1 :[{ id: '1',  name: 'PHP', color: 'red'}],
              2 :[{ id: '2',  name: 'JS', color: 'blue'}],
              3 :[{ id: '3',  name: 'LARAVEL', color: 'yellow'}],
@@ -189,21 +188,26 @@
          this.userTickets();
        },
        methods: {
-
+          //delete the ticket
            deleteTicket(index)
            {
              let conf = confirm("Do you ready want to delete this ticket?");
              if (conf === true) {
-               axios.delete('http://hell-up.test/public/ticket/' + this.tickets[index].id)
+               axios.delete('http://hell-up.test/public/ticket/' + this.user_tickets[index].id)
                .then(response => {
                  //remove from view
-                 this.tickets.splice(index, 1);
-                 this.user_tickets.splice(index, 1);
+                 if (!response.data.status) {
+                   confirm("Error in delete");
+                 }else{
+                   this.readTickets();
+                   this.user_tickets.splice(index, 1);
+                 }
                })
                .catch(error => {
                });
              }
            },
+           //give error if same
            initTag()
            {
              if(this.selected1 == this.selected2){
@@ -220,24 +224,25 @@
            {
              $("#user_ticket_model").modal("show");
            },
-
+           //creates a ticket
            createTicket()
            {
              var selected = [this.selected1, this.selected2];
 
              if(selected.length < 0 || this.selected1 != this.selected2){
-               console.log(this.selected1)
-               console.log(this.selected2)
+
                axios.post('http://hell-up.test/public/ticket', {
                  description: this.ticket.description,
                  tags: selected,
                })
                .then(response => {
-                 this.reset();
-
-                 this.userTickets();
-                 this.readTickets();
-
+                 if (!response.data.status) {
+                   confirm("Error in create");
+                 }else{
+                   this.reset();
+                   this.userTickets();
+                   this.readTickets();
+                 }
                  $("#add_ticket_model").modal("hide");
                })
                .catch(error => {
@@ -259,22 +264,25 @@
 
            readTickets()
            {
-             console.log('readTickets')
              axios.get('http://hell-up.test/public/ticket')
                .then(response => {
-                 this.tickets = response.data.tickets;
-                  console.log(this.tickets);
+                  if (!response.data.status) {
+                    confirm("Cannot read tickets");
+                  }else {
+                    this.tickets = response.data.tickets;
+                  }
                });
-
-
            },
 
            userTickets()
            {
-             console.log('userTickets')
              axios.get('http://hell-up.test/public/getusertickets/')
                .then(response => {
-                 this.user_tickets = response.data.user_tickets;
+                 if (!response.data.status) {
+                   confirm("Cannot read tickets");
+                 }else {
+                   this.user_tickets = response.data.user_tickets;
+                 }
                });
            },
 
@@ -291,7 +299,11 @@
                description: this.update_user_ticket.description,
              })
              .then(response => {
-               this.readTickets();
+               if (!response.data.status) {
+                 confirm("Cannot read tickets");
+               }else {
+                 this.readTickets();
+               }
                $("#update_ticket_model").modal("hide");
              })
              .catch(error => {
